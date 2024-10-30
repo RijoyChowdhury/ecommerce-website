@@ -1,6 +1,9 @@
 const express = require('express');
 const createError = require("http-errors");
+const dotenv = require('dotenv');
 const apiRoutes = require("./routes/index");
+
+dotenv.config();
 
 const app = express();
 app.use(express.json());
