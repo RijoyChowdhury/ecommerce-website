@@ -4,17 +4,32 @@ const shortUUID = require('short-uuid');
 
 const router = express.Router();
 const filePath = require.resolve('./user-data.json');
-const userData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+let userData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 
 const isPayloadEmpty = (payload) => {
     return Object.keys(payload).length === 0;
 }
 
+const updateUserDB = () => {
+    const storeData = JSON.stringify(userData);
+    fs.writeFileSync(filePath, storeData);
+}
+
+const deleteUserFromDB = (id) => {
+    userData = userData.filter(user => user.id !== id);
+    updateUserDB();
+}
+
+
 const writeUserDataToDB = (id, userDetails) => {
     const userDetailsObject = {id, ...userDetails};
     userData.push(userDetailsObject);
-    const storeData = JSON.stringify(userData);
-    fs.writeFileSync(filePath, storeData);
+    updateUserDB();
+}
+
+const updateUserDataToDB = (id, userDetails) => {
+    deleteUserFromDB(id);
+    writeUserDataToDB(id, userDetails);
 }
 
 const getUserDetailsById = id => {
@@ -70,13 +85,65 @@ router.get('/user/:userId', (req, res, next) => {
 });
 
 // create user
-router.post('/user', (req, res) => {
-    const id = shortUUID.generate();
-    writeUserDataToDB(id, req.body);
-    res.status(200).json({
-        status: 'success',
-        message: 'User data added',
-    });
+router.post('/user', (req, res, next) => {
+    try {
+        const id = shortUUID.generate();
+        if (isPayloadEmpty(req.body)) {
+            throw new Error('Bad payload.');
+        }
+        writeUserDataToDB(id, req.body);
+        res.status(200).json({
+            status: 'success',
+            message: 'User data added',
+        });
+    } catch (err) {
+        err.status = 400;
+        next(err);
+    }
+})
+
+// update user details by userId
+router.post('/user/:userId', (req, res, next) => {
+    try {
+        const {userId} = req.params;
+        const newUserDetails = req.body;
+        if (isPayloadEmpty(newUserDetails)) {
+            throw new Error('Bad payload.');
+        }
+        const userDetails = getUserDetailsById(userId);
+        if (isPayloadEmpty(userDetails)) {
+            throw new Error('User details not found.');
+        }
+        updateUserDataToDB(userId, Object.assign(userDetails, newUserDetails));
+        res.status(200).json({
+            status: 'success',
+            data: userDetails,
+        });
+    } catch (err) {
+        console.log(err);
+        err.status = 404;
+        next(err);
+    }
+})
+
+// delete user by Id
+router.delete('/user/:userId', (req, res, next) => {
+    try {
+        const {userId} = req.params;
+        const userDetails = getUserDetailsById(userId);
+        if (isPayloadEmpty(userDetails)) {
+            throw new Error('User details not found');
+        }
+        deleteUserFromDB(userId);
+        res.status(200).json({
+            status: 'success',
+            message: 'User deleted.',
+        });
+    } catch (err) {
+        console.log(err.msg);
+        err.status = 404;
+        next(err);
+    }
 })
 
 module.exports = router;
