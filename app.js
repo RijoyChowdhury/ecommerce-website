@@ -10,7 +10,7 @@ app.use("/api", apiRoutes);
 
 // on route not found
 app.use(function (req, res, next) {
-    next(createError(404));
+    next(createError(404, 'Route not found!'));
 });
 
 // error handler
