@@ -1,5 +1,6 @@
 const express = require('express');
 const fs = require('fs');
+const createError = require("http-errors");
 const shortUUID = require('short-uuid');
 
 const router = express.Router();
@@ -41,11 +42,10 @@ const getUserDetailsById = id => {
 router.use((req, res, next) => {
     try {
         if (req.method === 'POST' && isPayloadEmpty(req.body)) {
-            throw new Error('Bad payload.');
+            throw createError(400, 'Bad payload.');
         }
         next();
     } catch (err) {
-        err.status = 400; // bad request
         next(err);
     }
 });
@@ -54,14 +54,13 @@ router.use((req, res, next) => {
 router.get('/user', (req, res, next) => {
     try {
         if (userData.length !== 0) {
-            throw new Error('No users found.');
+            throw createError(404, 'No users found.');
         }
         res.status(200).json({
             status: 'success',
             data: userData,
         });
     } catch (err) {
-        err.status = 404; // data not found
         next(err);
     }
 });
@@ -72,14 +71,13 @@ router.get('/user/:userId', (req, res, next) => {
         const {userId} = req.params;
         const userDetails = getUserDetailsById(userId);
         if (isPayloadEmpty(userDetails)) {
-            throw new Error('User details not found');
+            throw createError(404, 'User details not found.');
         }
         res.status(200).json({
             status: 'success',
             data: userDetails,
         });
     } catch (err) {
-        err.status = 404;
         next(err);
     }
 });
@@ -89,7 +87,7 @@ router.post('/user', (req, res, next) => {
     try {
         const id = shortUUID.generate();
         if (isPayloadEmpty(req.body)) {
-            throw new Error('Bad payload.');
+            throw createError(400, 'Bad payload.');
         }
         writeUserDataToDB(id, req.body);
         res.status(200).json({
@@ -97,7 +95,6 @@ router.post('/user', (req, res, next) => {
             message: 'User data added',
         });
     } catch (err) {
-        err.status = 400;
         next(err);
     }
 })
@@ -108,11 +105,11 @@ router.post('/user/:userId', (req, res, next) => {
         const {userId} = req.params;
         const newUserDetails = req.body;
         if (isPayloadEmpty(newUserDetails)) {
-            throw new Error('Bad payload.');
+            throw createError(400, 'Bad payload.');
         }
         const userDetails = getUserDetailsById(userId);
         if (isPayloadEmpty(userDetails)) {
-            throw new Error('User details not found.');
+            throw createError(404, 'User details not found.');
         }
         updateUserDataToDB(userId, Object.assign(userDetails, newUserDetails));
         res.status(200).json({
@@ -120,8 +117,6 @@ router.post('/user/:userId', (req, res, next) => {
             data: userDetails,
         });
     } catch (err) {
-        console.log(err);
-        err.status = 404;
         next(err);
     }
 })
@@ -132,7 +127,7 @@ router.delete('/user/:userId', (req, res, next) => {
         const {userId} = req.params;
         const userDetails = getUserDetailsById(userId);
         if (isPayloadEmpty(userDetails)) {
-            throw new Error('User details not found');
+            throw createError(404, 'User details not found.');
         }
         deleteUserFromDB(userId);
         res.status(200).json({
@@ -140,8 +135,6 @@ router.delete('/user/:userId', (req, res, next) => {
             message: 'User deleted.',
         });
     } catch (err) {
-        console.log(err.msg);
-        err.status = 404;
         next(err);
     }
 })
