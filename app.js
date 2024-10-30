@@ -15,12 +15,10 @@ app.use(function (req, res, next) {
 
 // error handler
 app.use(function (err, req, res, next) {
-    res.message = err.message;
-    res.error = err;
     res.status(err.status || 500);
     res.json({
         status: 'failure',
-        message: 'Route not found',
+        message: err.message,
     });
 });
 
