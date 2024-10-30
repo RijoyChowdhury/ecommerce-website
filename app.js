@@ -1,17 +1,30 @@
 const express = require('express');
+const createError = require("http-errors");
+const apiRoutes = require("./routes/index");
 
 const app = express();
+app.use(express.json());
 
-app.use((req, res) => {
-    res.status(200);
+// api routes
+app.use("/api", apiRoutes);
+
+// on route not found
+app.use(function (req, res, next) {
+    next(createError(404));
+});
+
+// error handler
+app.use(function (err, req, res, next) {
+    res.message = err.message;
+    res.error = err;
+    res.status(err.status || 500);
     res.json({
-        state: 'success',
-        message: 'Received the request'
-    })
+        status: 'failure',
+        message: 'Route not found',
+    });
 });
 
 const port = process.env.PORT || 3000;
-
 app.set('port', port);
 
 app.listen(port, () => {
