@@ -8,3 +8,7 @@ An e-commerce website project.
    * POST : /api/user
 * Get User by Id
    * GET : /api/user/:userId
+* Update User by Id
+   * POST : /api/user/:userId
+* Delete User by Id
+   * DELETE : /api/user/:userId
