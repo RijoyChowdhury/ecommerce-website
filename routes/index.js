@@ -38,23 +38,21 @@ const getUserDetailsById = id => {
     return userDetails ?? {};
 }
 
-// request body checker
-router.use((req, res, next) => {
+const checkPostRequestBody = (req, res, next) => {
     try {
         if (req.method === 'POST' && isPayloadEmpty(req.body)) {
-            throw createError(400, 'Bad payload.');
+            throw createError.BadRequest('Bad payload.');
         }
         next();
     } catch (err) {
         next(err);
     }
-});
+}
 
-// get users
-router.get('/user', (req, res, next) => {
+const getUsersHandler = (req, res, next) => {
     try {
         if (userData.length !== 0) {
-            throw createError(404, 'No users found.');
+            throw createError.NotFound('No users found.');
         }
         res.status(200).json({
             status: 'success',
@@ -63,32 +61,11 @@ router.get('/user', (req, res, next) => {
     } catch (err) {
         next(err);
     }
-});
+}
 
-// get user by id
-router.get('/user/:userId', (req, res, next) => {
-    try {
-        const {userId} = req.params;
-        const userDetails = getUserDetailsById(userId);
-        if (isPayloadEmpty(userDetails)) {
-            throw createError(404, 'User details not found.');
-        }
-        res.status(200).json({
-            status: 'success',
-            data: userDetails,
-        });
-    } catch (err) {
-        next(err);
-    }
-});
-
-// create user
-router.post('/user', (req, res, next) => {
+const createUserHandler = (req, res, next) => {
     try {
         const id = shortUUID.generate();
-        if (isPayloadEmpty(req.body)) {
-            throw createError(400, 'Bad payload.');
-        }
         writeUserDataToDB(id, req.body);
         res.status(200).json({
             status: 'success',
@@ -97,19 +74,31 @@ router.post('/user', (req, res, next) => {
     } catch (err) {
         next(err);
     }
-})
+}
 
-// update user details by userId
-router.post('/user/:userId', (req, res, next) => {
+const getUserByIdHandler = (req, res, next) => {
+    try {
+        const {userId} = req.params;
+        const userDetails = getUserDetailsById(userId);
+        if (isPayloadEmpty(userDetails)) {
+            throw createError.NotFound('User details not found.');
+        }
+        res.status(200).json({
+            status: 'success',
+            data: userDetails,
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+const updateUserByIdHandler = (req, res, next) => {
     try {
         const {userId} = req.params;
         const newUserDetails = req.body;
-        if (isPayloadEmpty(newUserDetails)) {
-            throw createError(400, 'Bad payload.');
-        }
         const userDetails = getUserDetailsById(userId);
         if (isPayloadEmpty(userDetails)) {
-            throw createError(404, 'User details not found.');
+            throw createError.NotFound('User details not found.');
         }
         updateUserDataToDB(userId, Object.assign(userDetails, newUserDetails));
         res.status(200).json({
@@ -119,15 +108,14 @@ router.post('/user/:userId', (req, res, next) => {
     } catch (err) {
         next(err);
     }
-})
+}
 
-// delete user by Id
-router.delete('/user/:userId', (req, res, next) => {
+const deleteUserByIdHandler = (req, res, next) => {
     try {
         const {userId} = req.params;
         const userDetails = getUserDetailsById(userId);
         if (isPayloadEmpty(userDetails)) {
-            throw createError(404, 'User details not found.');
+            throw createError.NotFound('User details not found.');
         }
         deleteUserFromDB(userId);
         res.status(200).json({
@@ -137,6 +125,24 @@ router.delete('/user/:userId', (req, res, next) => {
     } catch (err) {
         next(err);
     }
-})
+}
+
+// request body checker
+router.use(checkPostRequestBody);
+
+// get users
+router.get('/user', getUsersHandler);
+
+// get user by id
+router.get('/user/:userId', getUserByIdHandler);
+
+// create user
+router.post('/user', createUserHandler);
+
+// update user details by userId
+router.post('/user/:userId', updateUserByIdHandler);
+
+// delete user by Id
+router.delete('/user/:userId', deleteUserByIdHandler);
 
 module.exports = router;
