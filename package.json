@@ -1,0 +1,21 @@
+{
+  "name": "ecommerce-website",
+  "version": "1.0.0",
+  "description": "An e-commerce website project.",
+  "main": "index.js",
+  "engines": {
+    "node": "^20.16.0"
+  },
+  "scripts": {
+    "dev": "nodemon app.js",
+    "start": "node app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.1",
+    "nodemon": "^3.1.7"
+  }
+}
