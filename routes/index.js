@@ -16,6 +16,13 @@ const checkPostRequestBody = (req, res, next) => {
     }
 }
 
+const isUserPresent = async (userId) => {
+    const userDetails = await UserModel.findById(userId) ?? {};
+    if (isObjectEmpty(userDetails)) {
+        throw createError.NotFound('User details not found.');
+    }
+}
+
 const getAllUsersHandler = async (req, res, next) => {
     try {
         const userData = await UserModel.find();
@@ -47,10 +54,7 @@ const createUserHandler = async (req, res, next) => {
 const getUserByIdHandler = async (req, res, next) => {
     try {
         const {userId} = req.params;
-        const userDetails = await UserModel.findById(userId) ?? {};
-        if (isObjectEmpty(userDetails)) {
-            throw createError.NotFound('User details not found.');
-        }
+        await isUserPresent(userId);
         res.status(200).json({
             status: 'success',
             data: userDetails,
@@ -64,10 +68,7 @@ const updateUserByIdHandler = async (req, res, next) => {
     try {
         const {userId} = req.params;
         const newUserDetails = req.body;
-        const userDetails = await UserModel.findById(userId) ?? {};
-        if (isObjectEmpty(userDetails)) {
-            throw createError.NotFound('User details not found.');
-        }
+        await isUserPresent(userId);
         await UserModel.findByIdAndUpdate(userId, newUserDetails);
         res.status(200).json({
             status: 'success',
@@ -81,10 +82,7 @@ const updateUserByIdHandler = async (req, res, next) => {
 const deleteUserByIdHandler = async (req, res, next) => {
     try {
         const {userId} = req.params;
-        const userDetails = await UserModel.findById(userId) ?? {};
-        if (isObjectEmpty(userDetails)) {
-            throw createError.NotFound('User details not found.');
-        }
+        await isUserPresent(userId);
         await UserModel.findByIdAndDelete(userId);
         res.status(200).json({
             status: 'success',
