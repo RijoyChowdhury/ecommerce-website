@@ -1,11 +1,23 @@
 const express = require('express');
 const createError = require("http-errors");
 const dotenv = require('dotenv');
+const mongoose = require('mongoose');
 const apiRoutes = require("./routes/index");
 
 dotenv.config();
 
+const {PORT, MONGODB_URI} = process.env;
 const app = express();
+
+// mongodb configuration
+mongoose
+  .connect(MONGODB_URI)
+  .catch((error) => console.log(error));
+const connection = mongoose.connection;
+connection.once('open', () => {
+  console.log('MONGODB connected successfully.');
+});
+
 app.use(express.json());
 
 // api routes
@@ -25,11 +37,10 @@ app.use(function (err, req, res, next) {
     });
 });
 
-const port = process.env.PORT || 3000;
-app.set('port', port);
+app.set('port', PORT);
 
-app.listen(port, () => {
-  console.log('Server listening on port:', port);
+app.listen(PORT, () => {
+  console.log('Server listening on port:', PORT);
 });
 
 module.exports = app;
