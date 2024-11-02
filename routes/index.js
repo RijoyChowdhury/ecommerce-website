@@ -1,46 +1,13 @@
 const express = require('express');
-const fs = require('fs');
-const createError = require("http-errors");
-const shortUUID = require('short-uuid');
+const createError = require('http-errors');
+const UserModel = require('../models/user');
+const {isObjectEmpty} = require('../utils/shared-utils');
 
 const router = express.Router();
-const filePath = require.resolve('./user-data.json');
-let userData = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-
-const isPayloadEmpty = (payload) => {
-    return Object.keys(payload).length === 0;
-}
-
-const updateUserDB = () => {
-    const storeData = JSON.stringify(userData);
-    fs.writeFileSync(filePath, storeData);
-}
-
-const deleteUserFromDB = (id) => {
-    userData = userData.filter(user => user.id !== id);
-    updateUserDB();
-}
-
-
-const writeUserDataToDB = (id, userDetails) => {
-    const userDetailsObject = {id, ...userDetails};
-    userData.push(userDetailsObject);
-    updateUserDB();
-}
-
-const updateUserDataToDB = (id, userDetails) => {
-    deleteUserFromDB(id);
-    writeUserDataToDB(id, userDetails);
-}
-
-const getUserDetailsById = id => {
-    const userDetails = userData.find(user => user.id === id);
-    return userDetails ?? {};
-}
 
 const checkPostRequestBody = (req, res, next) => {
     try {
-        if (req.method === 'POST' && isPayloadEmpty(req.body)) {
+        if (req.method === 'POST' && isObjectEmpty(req.body)) {
             throw createError.BadRequest('Bad payload.');
         }
         next();
@@ -49,9 +16,10 @@ const checkPostRequestBody = (req, res, next) => {
     }
 }
 
-const getUsersHandler = (req, res, next) => {
+const getAllUsersHandler = async (req, res, next) => {
     try {
-        if (userData.length !== 0) {
+        const userData = await UserModel.find();
+        if (userData.length === 0) {
             throw createError.NotFound('No users found.');
         }
         res.status(200).json({
@@ -63,24 +31,24 @@ const getUsersHandler = (req, res, next) => {
     }
 }
 
-const createUserHandler = (req, res, next) => {
+const createUserHandler = async (req, res, next) => {
     try {
-        const id = shortUUID.generate();
-        writeUserDataToDB(id, req.body);
+        const userDetails = req.body;
+        await UserModel.create(userDetails)
         res.status(200).json({
             status: 'success',
-            message: 'User data added',
+            message: 'User created.',
         });
     } catch (err) {
         next(err);
     }
 }
 
-const getUserByIdHandler = (req, res, next) => {
+const getUserByIdHandler = async (req, res, next) => {
     try {
         const {userId} = req.params;
-        const userDetails = getUserDetailsById(userId);
-        if (isPayloadEmpty(userDetails)) {
+        const userDetails = await UserModel.findById(userId) ?? {};
+        if (isObjectEmpty(userDetails)) {
             throw createError.NotFound('User details not found.');
         }
         res.status(200).json({
@@ -92,32 +60,32 @@ const getUserByIdHandler = (req, res, next) => {
     }
 }
 
-const updateUserByIdHandler = (req, res, next) => {
+const updateUserByIdHandler = async (req, res, next) => {
     try {
         const {userId} = req.params;
         const newUserDetails = req.body;
-        const userDetails = getUserDetailsById(userId);
-        if (isPayloadEmpty(userDetails)) {
+        const userDetails = await UserModel.findById(userId) ?? {};
+        if (isObjectEmpty(userDetails)) {
             throw createError.NotFound('User details not found.');
         }
-        updateUserDataToDB(userId, Object.assign(userDetails, newUserDetails));
+        await UserModel.findByIdAndUpdate(userId, newUserDetails);
         res.status(200).json({
             status: 'success',
-            data: userDetails,
+            message: 'User details updated.',
         });
     } catch (err) {
         next(err);
     }
 }
 
-const deleteUserByIdHandler = (req, res, next) => {
+const deleteUserByIdHandler = async (req, res, next) => {
     try {
         const {userId} = req.params;
-        const userDetails = getUserDetailsById(userId);
-        if (isPayloadEmpty(userDetails)) {
+        const userDetails = await UserModel.findById(userId) ?? {};
+        if (isObjectEmpty(userDetails)) {
             throw createError.NotFound('User details not found.');
         }
-        deleteUserFromDB(userId);
+        await UserModel.findByIdAndDelete(userId);
         res.status(200).json({
             status: 'success',
             message: 'User deleted.',
@@ -131,7 +99,7 @@ const deleteUserByIdHandler = (req, res, next) => {
 router.use(checkPostRequestBody);
 
 // get users
-router.get('/user', getUsersHandler);
+router.get('/user', getAllUsersHandler);
 
 // get user by id
 router.get('/user/:userId', getUserByIdHandler);
