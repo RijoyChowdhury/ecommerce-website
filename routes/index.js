@@ -5,9 +5,9 @@ const {isObjectEmpty} = require('../utils/shared-utils');
 
 const router = express.Router();
 
-const checkPostRequestBody = (req, res, next) => {
+const checkRequestBody = (req, res, next) => {
     try {
-        if (req.method === 'POST' && isObjectEmpty(req.body)) {
+        if (isObjectEmpty(req.body)) {
             throw createError.BadRequest('Bad payload.');
         }
         next();
@@ -16,10 +16,16 @@ const checkPostRequestBody = (req, res, next) => {
     }
 }
 
-const isUserPresent = async (userId) => {
-    const userDetails = await UserModel.findById(userId) ?? {};
-    if (isObjectEmpty(userDetails)) {
-        throw createError.NotFound('User details not found.');
+const checkUserDataPresent = async (req, res, next) => {
+    try {
+        const {userId} = req.params;
+        const userDetails = await UserModel.findById(userId) ?? {};
+        if (isObjectEmpty(userDetails)) {
+            throw createError.NotFound('User details not found.');
+        }
+        next();
+    } catch (err) {
+        next(err);
     }
 }
 
@@ -54,7 +60,7 @@ const createUserHandler = async (req, res, next) => {
 const getUserByIdHandler = async (req, res, next) => {
     try {
         const {userId} = req.params;
-        await isUserPresent(userId);
+        const userDetails = await UserModel.findById(userId);
         res.status(200).json({
             status: 'success',
             data: userDetails,
@@ -68,7 +74,6 @@ const updateUserByIdHandler = async (req, res, next) => {
     try {
         const {userId} = req.params;
         const newUserDetails = req.body;
-        await isUserPresent(userId);
         await UserModel.findByIdAndUpdate(userId, newUserDetails);
         res.status(200).json({
             status: 'success',
@@ -82,7 +87,6 @@ const updateUserByIdHandler = async (req, res, next) => {
 const deleteUserByIdHandler = async (req, res, next) => {
     try {
         const {userId} = req.params;
-        await isUserPresent(userId);
         await UserModel.findByIdAndDelete(userId);
         res.status(200).json({
             status: 'success',
@@ -93,22 +97,15 @@ const deleteUserByIdHandler = async (req, res, next) => {
     }
 }
 
-// request body checker
-router.use(checkPostRequestBody);
-
 // get users
 router.get('/user', getAllUsersHandler);
-
 // get user by id
-router.get('/user/:userId', getUserByIdHandler);
-
+router.get('/user/:userId', checkUserDataPresent, getUserByIdHandler);
 // create user
-router.post('/user', createUserHandler);
-
+router.post('/user', checkRequestBody, createUserHandler);
 // update user details by userId
-router.post('/user/:userId', updateUserByIdHandler);
-
+router.post('/user/:userId', checkRequestBody, checkUserDataPresent, updateUserByIdHandler);
 // delete user by Id
-router.delete('/user/:userId', deleteUserByIdHandler);
+router.delete('/user/:userId', checkUserDataPresent, deleteUserByIdHandler);
 
 module.exports = router;
