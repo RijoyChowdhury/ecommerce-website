@@ -18,7 +18,7 @@ router.get('/:id', checkProductDataPresent, getProductByIdHandler);
 // create user
 router.post('/', checkRequestBody, createProductHandler);
 // update user details by userId
-router.post('/id', checkRequestBody, checkProductDataPresent, updateProductByIdHandler);
+router.post('/:id', checkRequestBody, checkProductDataPresent, updateProductByIdHandler);
 // delete user by Id
 router.delete('/:id', checkProductDataPresent, deleteProductByIdHandler);
 
