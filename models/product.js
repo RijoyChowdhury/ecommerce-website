@@ -56,7 +56,7 @@ const productSchema = Schema({
     }
 });
 
-const validCategories = ['Electronics', 'Audio', 'Clothing', 'Accessories'];
+const validCategories = ['Electronics', 'Audio', 'Clothing', 'Accessories', 'Fashion', 'Shoes', 'Sports', 'Photography', 'Men\'s Fashion', 'Technology'];
 
 productSchema.pre('save', function (next) {
     const product = this;
