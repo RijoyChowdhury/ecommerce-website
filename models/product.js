@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const createError = require('http-errors');
 const Schema = mongoose.Schema;
 
 // schema rules
@@ -20,7 +21,7 @@ const productSchema = Schema({
         }
     },
     categories: {
-        type: String,
+        type: [String],
         required: true
     },
     productImages: {
@@ -33,9 +34,42 @@ const productSchema = Schema({
             validator: function () {
                 return this.discount < this.price;
             },
-            message: 'Discount amount must be less than actual price',
+            message: 'Discount amount must be less than actual price.',
         },
     },
+    description: {
+        type: String,
+        required: [true, 'Product description is required.'],
+        maxlength: [2000, 'Product description cannot be greater than 2000 characters.']
+    },
+    stock_quantity: {
+        type: Number,
+        required: [true, 'Product inventory count is required.'],
+        validate: function () {
+            return this.stock_quantity >= 0;
+        },
+        message: 'Inventory count cannot be negative.',
+    },
+    brand: {
+        type: String,
+        required: [true, 'Product brand is required.'],
+    }
 });
+
+const validCategories = ['Electronics', 'Audio', 'Clothing', 'Accessories'];
+
+productSchema.pre('save', function (next) {
+    const product = this;
+    const invalidCategories = product.categories.filter(category => !validCategories.includes(category));
+    if (invalidCategories.length === 1) {
+        const err = createError.BadRequest(`${invalidCategories.join()} is not a valid category.`);
+        return next(err);
+    }
+    if (invalidCategories.length > 1) {
+        const err = createError.BadRequest(`${invalidCategories.join()} are not valid categories.`);
+        return next(err);
+    }
+    next();
+})
 
 module.exports = mongoose.model('Product', productSchema);
