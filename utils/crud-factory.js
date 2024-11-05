@@ -1,10 +1,32 @@
 const createError = require('http-errors');
 const { isObjectEmpty } = require('./shared-utils');
 
+const getQueryParamsFactory = () => {
+    return async (req, res, next) => {
+        try {
+            const {select = null, sort = '{}', limit = 10, page = 1, query = '{}'} = req.query;
+            const paramsQuery = {};
+            paramsQuery.filters = JSON.parse(query);
+            paramsQuery.projection = select;
+            paramsQuery.options = {
+                limit: limit ?? 10,
+                skip: page > 0 ? (page - 1) * limit : 0,
+                sort: JSON.parse(sort),
+            }
+            req.paramsQuery = paramsQuery;
+            next();
+        } catch (err) {
+            next(err);
+        }
+    }
+}
+
 const getAllFactory = (ElementModel) => {
     return async (req, res, next) => {
         try {
-            const data = await ElementModel.find();
+            const {filters, projection, options} = req.paramsQuery;
+            const resultQuery = ElementModel.find(filters, projection, options);
+            const data = await resultQuery;
             if (data.length === 0) {
                 throw createError.NotFound('No data found.');
             }
@@ -100,5 +122,6 @@ module.exports = {
     getByIdFactory, 
     updateByIdFactory, 
     deleteByIdFactory, 
-    checkDataFactory 
+    checkDataFactory,
+    getQueryParamsFactory
 }
