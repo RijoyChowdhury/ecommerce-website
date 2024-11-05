@@ -6,13 +6,14 @@ const {
     createProductHandler,
     getProductByIdHandler,
     updateProductByIdHandler,
-    deleteProductByIdHandler
+    deleteProductByIdHandler,
+    getQueryParamsHandler
 } = require('../controllers/productControllers');
 
 const router = express.Router();
 
 // get users
-router.get('/', getAllProductsHandler);
+router.get('/', getQueryParamsHandler, getAllProductsHandler);
 // get user by id
 router.get('/:id', checkProductDataPresent, getProductByIdHandler);
 // create user

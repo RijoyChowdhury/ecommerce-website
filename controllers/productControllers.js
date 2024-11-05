@@ -5,7 +5,8 @@ const {
     getByIdFactory, 
     updateByIdFactory, 
     deleteByIdFactory, 
-    checkDataFactory 
+    checkDataFactory,
+    getQueryParamsFactory
 } = require('../utils/crud-factory');
 
 const checkProductDataPresent = checkDataFactory(ProductModel);
@@ -14,6 +15,7 @@ const createProductHandler = createFactory(ProductModel);
 const getProductByIdHandler = getByIdFactory(ProductModel);
 const updateProductByIdHandler = updateByIdFactory(ProductModel);
 const deleteProductByIdHandler = deleteByIdFactory(ProductModel);
+const getQueryParamsHandler = getQueryParamsFactory();
 
 module.exports = {
     checkProductDataPresent,
@@ -21,5 +23,6 @@ module.exports = {
     createProductHandler,
     getProductByIdHandler,
     updateProductByIdHandler,
-    deleteProductByIdHandler
+    deleteProductByIdHandler,
+    getQueryParamsHandler
 }
