@@ -2,6 +2,7 @@ const express = require('express');
 const createError = require("http-errors");
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
+const cookieParser = require('cookie-parser');
 const apiRoutes = require("./routes/index");
 
 dotenv.config();
@@ -19,6 +20,7 @@ connection.once('open', () => {
 });
 
 app.use(express.json());
+app.use(cookieParser());
 
 // api routes
 app.use("/api", apiRoutes);
