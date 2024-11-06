@@ -24,7 +24,7 @@ const getQueryParamsFactory = () => {
 const getAllFactory = (ElementModel) => {
     return async (req, res, next) => {
         try {
-            const {filters, projection, options} = req.paramsQuery;
+            const {filters = {}, projection = '', options = {}} = req.paramsQuery || {};
             const resultQuery = ElementModel.find(filters, projection, options);
             const data = await resultQuery;
             if (data.length === 0) {
