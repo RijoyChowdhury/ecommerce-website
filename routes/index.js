@@ -5,6 +5,8 @@ const jwt = require('jsonwebtoken');
 const userRoutes = require('./user');
 const productRoutes = require('./product');
 const UserModel = require('../models/user');
+const {otpGenerator} = require('../utils/shared-utils');
+const sendEmail = require('../utils/mailer/sendMailUtility');
 
 const jwtSign = promisify(jwt.sign);
 const jwtVerify = promisify(jwt.verify);
@@ -97,6 +99,54 @@ const getUserDataHandler = async function (req, res, next) {
     }
 }
 
+const forgetPasswordHandler = async function (req, res, next) {
+    try {
+        const {email} = req.body;
+        const user = await UserModel.findOne({email});
+        if (!user) {
+            throw createError.NotFound('User does not exist.');
+        }
+        const generatedOtp = otpGenerator();
+        sendEmail(generatedOtp, user.name, user.email);
+        user.token = generatedOtp;
+        user.otpExpiry = Date.now() + 1000*60*60;
+        await user.save();
+        res.status(200).json({
+            status: 'success',
+            message: 'OTP sent.'
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+const resetPasswordHandler = async function (req, res, next) {
+    try {
+        const userId = req.params.id;
+        const {password, otp} = req.body;
+        const user = await UserModel.findById(userId);
+        if (!user) {
+            throw createError.NotFound('User does not exist.');
+        }
+        if (otp && user.token === otp) {
+            const currentTime = Date.now();
+            if (currentTime < user.otpExpiry) {
+                user.password = password;
+                delete user.token;
+                delete user.otpExpiry;
+                await user.save();
+                res.status(200).json({
+                    status: 'success',
+                    message: 'Password updated.'
+                });
+            }
+        }
+        throw createError.Forbidden('Invalid OTP');
+    } catch (err) {
+        next(err);
+    }
+}
+
 const router = express.Router();
 router.use('/user', userRoutes);
 router.use('/product', productRoutes);
@@ -104,5 +154,7 @@ router.use('/product', productRoutes);
 router.post('/signup', signUpHandler);
 router.post('/login', loginHandler);
 router.use('/getUserDetails', protectRouteHandler, getUserDataHandler);
+router.patch('/forgetPassword', forgetPasswordHandler);
+router.patch('/resetPassword/:id', resetPasswordHandler);
 
 module.exports = router;
