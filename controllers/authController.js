@@ -9,22 +9,26 @@ const sendEmail = require('../utils/mailer/sendMailUtility');
 const jwtSign = promisify(jwt.sign);
 const jwtVerify = promisify(jwt.verify);
 
-const isAdmin = async (req, res, next) => {
-    try {
-        let userId = req.userId;
-        let user = await UserModel.findById(userId) ?? {};
-        if (isObjectEmpty(user)) {
-            throw createError.NotFound('User not found.');
+const hasPermission = (roles) => {
+    return async (req, res, next) => {
+        try {
+            let userId = req.userId;
+            let user = await UserModel.findById(userId) ?? {};
+            if (isObjectEmpty(user)) {
+                throw createError.Forbidden('Access Denied');
+            }
+            if (roles.includes(user.role)) {
+                next();
+            } else {
+                throw createError.Forbidden('Access Denied');
+            }
+        } catch (err) {
+            next(err);
         }
-        if (user.role === 'Admin') {
-            next();
-        } else {
-            throw createError.Forbidden('Access Denied');
-        }
-    } catch (err) {
-        next(err);
     }
 }
+
+const isAdmin = hasPermission(['Admin']);
 
 const protectRouteHandler = async function (req, res, next) {
     try {
@@ -87,6 +91,14 @@ const loginHandler = async (req, res, next) => {
     }
 }
 
+const logoutHandler = async (req, res, next) => {
+    res.cookie('jwt', 'jhguyfghfgh', {maxAge: Date.now(), httpOnly: true, path: '/'});
+    res.status(200).json({
+        status: 'success',
+        message: 'User logged out.',
+    });
+}
+
 const forgetPasswordHandler = async function (req, res, next) {
     try {
         const {email} = req.body;
@@ -140,6 +152,7 @@ module.exports = {
     protectRouteHandler,
     signUpHandler,
     loginHandler,
+    logoutHandler,
     forgetPasswordHandler,
     resetPasswordHandler
 }
