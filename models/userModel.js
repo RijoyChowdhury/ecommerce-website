@@ -33,4 +33,20 @@ const userSchema = Schema({
     }
 });
 
+const validRoles = ['Admin', 'User', 'Seller'];
+
+userSchema.pre('save', function (next) {
+    const user = this;
+    if (user.role) {
+        if (validRoles.includes(user.role)) {
+            next();
+        } else {
+            const err = createError.BadRequest(`${user.role} is not a valid role.`);
+            return next(err);
+        }
+    }
+    user.role = 'User';
+    next();
+})
+
 module.exports = mongoose.model("User", userSchema);
