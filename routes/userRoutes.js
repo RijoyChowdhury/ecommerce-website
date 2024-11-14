@@ -8,9 +8,11 @@ const {
     updateUserByIdHandler,
     deleteUserByIdHandler 
 } = require('../controllers/userControllers');
-const {isAdmin} = require('../controllers/authController');
+const {isAdmin, protectRouteHandler} = require('../controllers/authController');
 
 const router = express.Router();
+
+router.use(protectRouteHandler);
 
 // get users
 router.get('/', isAdmin, getAllUsersHandler);
