@@ -1,4 +1,4 @@
-const ProductModel = require('../models/product');
+const ProductModel = require('../models/productModel');
 const { 
     getAllFactory, 
     createFactory, 
