@@ -8,18 +8,19 @@ const {
     updateUserByIdHandler,
     deleteUserByIdHandler 
 } = require('../controllers/userControllers');
+const {isAdmin} = require('../controllers/authController');
 
 const router = express.Router();
 
 // get users
-router.get('/', getAllUsersHandler);
+router.get('/', isAdmin, getAllUsersHandler);
 // get user by id
 router.get('/:id', checkUserDataPresent, getUserByIdHandler);
 // create user
-router.post('/', checkRequestBody, createUserHandler);
+router.post('/', isAdmin, checkRequestBody, createUserHandler);
 // update user details by userId
 router.post('/:id', checkRequestBody, checkUserDataPresent, updateUserByIdHandler);
 // delete user by Id
-router.delete('/:id', checkUserDataPresent, deleteUserByIdHandler);
+router.delete('/:id', isAdmin, checkUserDataPresent, deleteUserByIdHandler);
 
 module.exports = router;
