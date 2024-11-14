@@ -26,6 +26,10 @@ const userSchema = Schema({
     },
     otpExpiry: {
         type: Date,
+    },
+    role: {
+        type: String,
+        default: 'User'
     }
 });
 
