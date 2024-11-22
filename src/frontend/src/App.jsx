@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import NavBar from './components/NavBar';
 import Home from './views/Home';
 import Cart from "./views/Cart";
 import User from './views/User';
@@ -10,15 +11,18 @@ import './App.css';
 
 function App() {
     return (
-        <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/cart"  element={<Cart />} />
-            <Route path="/user" element={<User />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/signin" element={<Login />} />
-            <Route path="/product/:id" element={<ProductDetails />} />
-            <Route path="*" element={<PageNotFound />} />
-        </Routes>
+        <>
+            <NavBar />
+            <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/cart"  element={<Cart />} />
+                <Route path="/user" element={<User />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/signin" element={<Login />} />
+                <Route path="/product/:id" element={<ProductDetails />} />
+                <Route path="*" element={<PageNotFound />} />
+            </Routes>
+        </>
     )
 }
 
