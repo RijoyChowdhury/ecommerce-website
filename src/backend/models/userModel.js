@@ -30,7 +30,11 @@ const userSchema = Schema({
     role: {
         type: String,
         default: 'User'
-    }
+    },
+    bookings: {
+        type: [mongoose.Schema.ObjectId],
+        ref: "Booking"
+    },
 });
 
 const validRoles = ['Admin', 'User', 'Seller'];

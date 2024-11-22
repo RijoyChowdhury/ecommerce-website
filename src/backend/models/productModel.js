@@ -53,6 +53,10 @@ const productSchema = Schema({
     brand: {
         type: String,
         required: [true, 'Product brand is required.'],
+    },
+    reviews: {
+        type: [mongoose.Schema.ObjectId],
+        ref:"ProductReview"
     }
 });
 
