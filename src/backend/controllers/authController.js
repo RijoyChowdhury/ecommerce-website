@@ -76,6 +76,10 @@ const loginHandler = async (req, res, next) => {
                 res.status(200).json({
                     status: 'success',
                     message: 'User logged in.',
+                    data: {
+                        name: user.name,
+                        email: user.email,
+                    },
                 });
             } else {
                 res.status(404).json({
