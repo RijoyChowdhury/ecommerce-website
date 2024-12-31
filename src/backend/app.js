@@ -20,7 +20,13 @@ connection.once('open', () => {
   console.log('MONGODB connected successfully.');
 });
 
-app.use(cors());
+// dev: allowing all requests
+const corsConfig = {
+  origin: true,
+  credentials: true,
+};
+app.use(cors(corsConfig));
+
 app.use(express.json());
 app.use(cookieParser());
 
