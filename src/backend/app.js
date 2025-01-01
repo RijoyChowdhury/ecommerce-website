@@ -5,30 +5,33 @@ const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const apiRoutes = require("./routes/index");
 const cors = require("cors");
+const mongoSanitize = require('express-mongo-sanitize');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+require("./utils/connectDB");
 
 dotenv.config();
 
 const { PORT, MONGODB_URI} = process.env;
 const app = express();
 
-// mongodb configuration
-mongoose
-  .connect(MONGODB_URI)
-  .catch((error) => console.log(error));
-const connection = mongoose.connection;
-connection.once('open', () => {
-  console.log('MONGODB connected successfully.');
-});
-
 // dev: allowing all requests
 const corsConfig = {
   origin: true,
   credentials: true,
 };
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+})
+
+app.use(limiter);
 app.use(cors(corsConfig));
+app.use(helmet())
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(mongoSanitize());
 
 
 // api routes
