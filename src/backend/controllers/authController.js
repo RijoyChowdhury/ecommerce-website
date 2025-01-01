@@ -1,5 +1,6 @@
 const createError = require('http-errors');
 const jwt = require('jsonwebtoken');
+const bcrypt = require("bcrypt");
 const promisify = require('util').promisify;
 const UserModel = require('../models/userModel');
 const { isObjectEmpty } = require('../utils/shared-utils');
@@ -63,7 +64,7 @@ const loginHandler = async (req, res, next) => {
         let {email, password, rememberUser = false} = req.body;
         let user = await UserModel.findOne({email});
         if (user) {
-            if (password === user.password) {
+            if (await bcrypt.compare(password, user.password)) {
                 if (rememberUser) {
                     const authToken = await jwtSign({
                         id: user['_id']
