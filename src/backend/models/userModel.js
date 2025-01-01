@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require("bcrypt");
 const Schema = mongoose.Schema;
 
 // schema rules
@@ -38,6 +39,13 @@ const userSchema = Schema({
 });
 
 const validRoles = ['Admin', 'User', 'Seller'];
+
+userSchema.pre('save', async function (next) {
+    const user = this;
+    const password = user.password;
+    user.password = await bcrypt.hash(password, 10);
+    next();
+})
 
 userSchema.pre('save', function (next) {
     const user = this;
