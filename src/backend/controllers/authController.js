@@ -80,6 +80,7 @@ const loginHandler = async (req, res, next) => {
                     data: {
                         name: user.name,
                         email: user.email,
+                        id: user['_id'],
                     },
                 });
             } else {
