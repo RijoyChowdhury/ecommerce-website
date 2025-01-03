@@ -4,12 +4,12 @@ const { isObjectEmpty } = require('./shared-utils');
 const getQueryParamsFactory = () => {
     return async (req, res, next) => {
         try {
-            const {select = null, sort = '{}', limit = 10, page = 1, query = '{}'} = req.query;
+            const {select = null, sort = '{}', limit = 20, page = 1, query = '{}'} = req.query;
             const paramsQuery = {};
             paramsQuery.filters = JSON.parse(query);
             paramsQuery.projection = select;
             paramsQuery.options = {
-                limit: limit ?? 10,
+                limit: limit,
                 skip: page > 0 ? (page - 1) * limit : 0,
                 sort: JSON.parse(sort),
             }
@@ -33,6 +33,7 @@ const getAllFactory = (ElementModel) => {
             res.status(200).json({
                 status: 'success',
                 data,
+                length: data.length,
             });
         } catch (err) {
             next(err);
@@ -44,7 +45,13 @@ const createFactory = (ElementModel) => {
     return async (req, res, next) => {
         try {
             const data = req.body;
-            await ElementModel.create(data)
+            if (Array.isArray(data)) {
+                data.forEach(async (product) => {
+                    await ElementModel.create(data);
+                })
+            } else {
+                await ElementModel.create(data);
+            }            
             res.status(200).json({
                 status: 'success',
                 message: 'Data created.',
