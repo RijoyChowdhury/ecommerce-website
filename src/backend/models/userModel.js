@@ -2,6 +2,18 @@ const mongoose = require('mongoose');
 const bcrypt = require("bcrypt");
 const Schema = mongoose.Schema;
 
+const cartItemSchema = Schema({
+    quantity: {
+        type: Number,
+        default: 1
+    },
+    product: {
+        type: mongoose.Schema.ObjectId,
+        required: [true, 'Please provide product id.'],
+        ref: "Product"
+    },
+});
+
 // schema rules
 const userSchema = Schema({
     name: {
@@ -36,6 +48,10 @@ const userSchema = Schema({
         type: [mongoose.Schema.ObjectId],
         ref: "Booking"
     },
+    cart: {
+        type: [cartItemSchema],
+        default: []
+    }
 });
 
 const validRoles = ['Admin', 'User', 'Seller'];

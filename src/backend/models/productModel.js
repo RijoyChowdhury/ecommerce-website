@@ -8,7 +8,7 @@ const productSchema = Schema({
         type: String,
         required: [true, 'Product name is required.'],
         unique: [true, 'Product name should be unique.'],
-        maxlength: [40, 'Length of product name is more than 40 characters.'],
+        maxlength: [100, 'Length of product name is more than 40 characters.'],
     },
     price: {
         type: Number,
@@ -50,17 +50,13 @@ const productSchema = Schema({
         },
         message: 'Inventory count cannot be negative.',
     },
-    brand: {
-        type: String,
-        required: [true, 'Product brand is required.'],
-    },
     reviews: {
         type: [mongoose.Schema.ObjectId],
         ref:"ProductReview"
     }
 });
 
-const validCategories = ['Electronics', 'Audio', 'Clothing', 'Accessories', 'Fashion', 'Shoes', 'Sports', 'Photography', 'Men\'s Fashion', 'Technology'];
+const validCategories = ['Electronics', 'Audio', 'Jewelery', 'Accessories', 'Fashion', 'Shoes', 'Sports', 'Photography', 'Technology', 'Clothing'];
 
 productSchema.pre('save', function (next) {
     const product = this;
